@@ -5,8 +5,14 @@ import io.github.alirahal01.trawler.extensions.MonitorExtension
 import io.github.alirahal01.trawler.extensions.NetworkMonitor
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.MockRequestHandleScope
 import io.ktor.client.engine.mock.respond
+import io.ktor.client.request.HttpRequestData
+import io.ktor.client.request.HttpResponseData
 import io.ktor.client.request.get
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
@@ -39,6 +45,30 @@ class TrawlerMonitorPluginTest {
     }
 
     @Test
+    fun capturesResponseBodyWithoutConsumingItForTheCaller() = runTest {
+        val monitor = NetworkMonitor()
+        val client = clientWith(monitor) { respond("hello world", HttpStatusCode.OK) }
+
+        val response = client.get("https://example.com/ping")
+        val bodyReadByCaller = response.bodyAsText()
+
+        assertEquals("hello world", bodyReadByCaller)
+        val call = monitor.observeCalls().value.single()
+        assertEquals("hello world", call.responseBody?.decodeToString())
+    }
+
+    @Test
+    fun capturesInMemoryRequestBody() = runTest {
+        val monitor = NetworkMonitor()
+        val client = clientWith(monitor) { respond("ok", HttpStatusCode.OK) }
+
+        client.post("https://example.com/echo") { setBody("hello request") }
+
+        val call = monitor.observeCalls().value.single()
+        assertEquals("hello request", call.requestBody?.decodeToString())
+    }
+
+    @Test
     fun captureFailureNeverBreaksTheRealRequest() = runTest {
         val throwingExtension = object : MonitorExtension {
             override val id = "throwing"
@@ -56,9 +86,7 @@ class TrawlerMonitorPluginTest {
 
     private fun clientWith(
         monitor: NetworkMonitor,
-        handler: suspend io.ktor.client.engine.mock.MockRequestHandleScope.(
-            request: io.ktor.client.request.HttpRequestData,
-        ) -> io.ktor.client.request.HttpResponseData,
+        handler: suspend MockRequestHandleScope.(request: HttpRequestData) -> HttpResponseData,
     ): HttpClient {
         val engine = MockEngine(handler)
         return HttpClient(engine) {

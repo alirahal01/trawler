@@ -2,9 +2,14 @@ package io.github.alirahal01.trawler.ktor
 
 import io.github.alirahal01.trawler.core.CapturedCall
 import io.github.alirahal01.trawler.extensions.NetworkMonitor
+import io.ktor.client.plugins.api.SendingRequest
 import io.ktor.client.plugins.api.createClientPlugin
+import io.ktor.client.plugins.observer.ResponseObserver
 import io.ktor.http.Headers
+import io.ktor.http.content.OutgoingContent
 import io.ktor.util.AttributeKey
+import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.toByteArray
 import kotlinx.coroutines.CancellationException
 import kotlin.random.Random
 import kotlin.time.Clock
@@ -12,18 +17,25 @@ import kotlin.time.ExperimentalTime
 
 private val CallIdKey = AttributeKey<String>("TrawlerCallId")
 private val StartedAtKey = AttributeKey<Long>("TrawlerStartedAt")
+private val RequestBodyKey = AttributeKey<ByteArray>("TrawlerRequestBody")
 
 class TrawlerMonitorConfig {
     var monitor: NetworkMonitor? = null
 }
 
 /**
- * Captures method/url/headers/status/timing for every request on the client
- * it's installed on. Body capture and redaction land in later steps; every
- * side effect here is wrapped so a bug in this plugin can never fail, delay,
- * or alter the host app's real HTTP call (ADR-0003).
+ * Captures method/url/headers/status/timing/body for every request on the
+ * client it's installed on. Response bodies are teed via Ktor's own
+ * [ResponseObserver] (engine-agnostic — it operates on [io.ktor.utils.io.ByteReadChannel],
+ * so OkHttp/Darwin/CIO all go through the same code path here). Request
+ * bodies are captured only when they're already an in-memory
+ * [OutgoingContent.ByteArrayContent] — `bytes()` is a pure, repeatable read
+ * so it needs no teeing. Streamed request bodies (large file uploads) are
+ * deliberately left uncaptured in v1 rather than risking the real upload
+ * stream; every side effect here is wrapped so a bug in this plugin can
+ * never fail, delay, or alter the host app's real HTTP call (ADR-0003).
  */
-@OptIn(ExperimentalTime::class)
+@OptIn(ExperimentalTime::class, InternalAPI::class)
 val TrawlerMonitor = createClientPlugin("TrawlerMonitor", ::TrawlerMonitorConfig) {
     val networkMonitor = pluginConfig.monitor
         ?: error(
@@ -39,27 +51,40 @@ val TrawlerMonitor = createClientPlugin("TrawlerMonitor", ::TrawlerMonitorConfig
         }
     }
 
-    onResponse { response ->
+    on(SendingRequest) { request, content ->
         isolatingCaptureFailures {
-            val attributes = response.call.attributes
-            val startedAt = attributes.getOrNull(StartedAtKey) ?: return@isolatingCaptureFailures
-            val id = attributes.getOrNull(CallIdKey) ?: return@isolatingCaptureFailures
-            val now = Clock.System.now().toEpochMilliseconds()
-
-            networkMonitor.capture(
-                CapturedCall(
-                    id = id,
-                    url = response.call.request.url.toString(),
-                    method = response.call.request.method.value,
-                    requestHeaders = response.call.request.headers.toHeaderMap(),
-                    responseHeaders = response.headers.toHeaderMap(),
-                    status = response.status.value,
-                    startedAtEpochMillis = startedAt,
-                    durationMillis = now - startedAt,
-                ),
-            )
+            if (content is OutgoingContent.ByteArrayContent) {
+                request.attributes.put(RequestBodyKey, content.bytes())
+            }
         }
     }
+
+    val responseObserver = ResponseObserver.prepare {
+        onResponse { response ->
+            isolatingCaptureFailures {
+                val attributes = response.call.attributes
+                val startedAt = attributes.getOrNull(StartedAtKey) ?: return@isolatingCaptureFailures
+                val id = attributes.getOrNull(CallIdKey) ?: return@isolatingCaptureFailures
+                val now = Clock.System.now().toEpochMilliseconds()
+
+                networkMonitor.capture(
+                    CapturedCall(
+                        id = id,
+                        url = response.call.request.url.toString(),
+                        method = response.call.request.method.value,
+                        requestHeaders = response.call.request.headers.toHeaderMap(),
+                        responseHeaders = response.headers.toHeaderMap(),
+                        requestBody = attributes.getOrNull(RequestBodyKey),
+                        responseBody = response.rawContent.toByteArray(),
+                        status = response.status.value,
+                        startedAtEpochMillis = startedAt,
+                        durationMillis = now - startedAt,
+                    ),
+                )
+            }
+        }
+    }
+    ResponseObserver.install(responseObserver, client)
 }
 
 /**
