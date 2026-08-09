@@ -19,6 +19,8 @@ import io.ktor.http.headersOf
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class TrawlerMonitorPluginTest {
@@ -82,6 +84,20 @@ class TrawlerMonitorPluginTest {
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertTrue(monitor.observeCalls().value.isEmpty())
+    }
+
+    @Test
+    fun capturesConnectionFailuresThatNeverGetAResponse() = runTest {
+        val monitor = NetworkMonitor()
+        val client = clientWith(monitor) { throw RuntimeException("Simulated connection failure") }
+
+        assertFailsWith<RuntimeException> { client.get("https://example.com/ping") }
+
+        val call = monitor.observeCalls().value.single()
+        assertEquals("https://example.com/ping", call.url)
+        assertEquals("GET", call.method)
+        assertNull(call.status)
+        assertEquals("Simulated connection failure", call.error)
     }
 
     private fun clientWith(

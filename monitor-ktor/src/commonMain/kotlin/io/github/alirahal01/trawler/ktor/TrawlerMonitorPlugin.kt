@@ -2,6 +2,7 @@ package io.github.alirahal01.trawler.ktor
 
 import io.github.alirahal01.trawler.core.CapturedCall
 import io.github.alirahal01.trawler.extensions.NetworkMonitor
+import io.ktor.client.plugins.api.Send
 import io.ktor.client.plugins.api.SendingRequest
 import io.ktor.client.plugins.api.createClientPlugin
 import io.ktor.client.plugins.observer.ResponseObserver
@@ -43,11 +44,32 @@ val TrawlerMonitor = createClientPlugin("TrawlerMonitor", ::TrawlerMonitorConfig
                 "install(TrawlerMonitor) { monitor = myNetworkMonitor }",
         )
 
-    onRequest { request, _ ->
-        isolatingCaptureFailures {
-            val startedAt = Clock.System.now().toEpochMilliseconds()
-            request.attributes.put(StartedAtKey, startedAt)
-            request.attributes.put(CallIdKey, "$startedAt-${Random.nextInt()}")
+    on(Send) { request ->
+        val startedAt = Clock.System.now().toEpochMilliseconds()
+        val id = "$startedAt-${Random.nextInt()}"
+        request.attributes.put(StartedAtKey, startedAt)
+        request.attributes.put(CallIdKey, id)
+
+        try {
+            proceed(request)
+        } catch (c: CancellationException) {
+            throw c
+        } catch (t: Throwable) {
+            isolatingCaptureFailures {
+                val now = Clock.System.now().toEpochMilliseconds()
+                networkMonitor.capture(
+                    CapturedCall(
+                        id = id,
+                        url = request.url.buildString(),
+                        method = request.method.value,
+                        requestHeaders = request.headers.build().toHeaderMap(),
+                        startedAtEpochMillis = startedAt,
+                        durationMillis = now - startedAt,
+                        error = t.message ?: t::class.simpleName ?: "Unknown error",
+                    ),
+                )
+            }
+            throw t
         }
     }
 
