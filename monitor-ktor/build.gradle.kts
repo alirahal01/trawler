@@ -24,12 +24,14 @@ extensions.configure<KotlinMultiplatformExtension> {
     sourceSets {
         commonMain.dependencies {
             api(project(":monitor-core"))
+            api(project(":monitor-extensions-api"))
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.ktor.client.core)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.ktor.client.mock)
         }
     }
 }

@@ -26,8 +26,8 @@ extensions.configure<KotlinMultiplatformExtension> {
     sourceSets {
         commonMain.dependencies {
             api(project(":monitor-core"))
-            implementation(compose.runtime)
-            implementation(libs.kotlinx.coroutines.core)
+            api(compose.runtime)
+            api(libs.kotlinx.coroutines.core)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
