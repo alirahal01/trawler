@@ -27,7 +27,6 @@ extensions.configure<KotlinMultiplatformExtension> {
         commonMain.dependencies {
             implementation(project(":monitor-core"))
             implementation(project(":monitor-extensions-api"))
-            implementation(project(":monitor-ktor"))
             implementation(libs.ktor.client.core)
             implementation(libs.kotlinx.coroutines.core)
             implementation(compose.runtime)
