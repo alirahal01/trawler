@@ -1,0 +1,18 @@
+.gradle/
+build/
+.kotlin/
+local.properties
+.idea/
+*.iml
+.DS_Store
+captures/
+.cxx/
+*.hprof
+.kotlin-native/
+
+# iOS / Xcode
+sample-app/iosApp/build/
+sample-app/iosApp/**/*.xcuserstate
+sample-app/iosApp/**/xcuserdata/
+sample-app/iosApp/Pods/
+*.xcworkspace/xcuserdata/
