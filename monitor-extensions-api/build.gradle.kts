@@ -31,6 +31,7 @@ extensions.configure<KotlinMultiplatformExtension> {
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
+            implementation(libs.kotlinx.coroutines.test)
         }
     }
 }
