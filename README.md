@@ -10,7 +10,11 @@ Trawler is a clean-room alternative to
 [KtorMonitor](https://github.com/CosminMihuMDC/KtorMonitor) and
 [Wormholy](https://github.com/pmusolino/wormholy) (iOS-only): same problem
 space, no shared code, and a deliberately smaller dependency footprint (no DI
-container, no persistence layer in core — see `docs/adr/`).
+container, no persistence layer in core — see
+[docs/LEAN_FOOTPRINT.md](docs/LEAN_FOOTPRINT.md)).
+
+See [CONTEXT.md](CONTEXT.md) for the project's glossary and
+[docs/adr/](docs/adr/) for the foundational architectural decisions.
 
 ## Modules
 
@@ -25,8 +29,9 @@ container, no persistence layer in core — see `docs/adr/`).
 
 ## Status
 
-Early scaffold — see `docs/adr/` for the foundational decisions and open
-`.issues/` (or the project board) for build progress.
+Core capture pipeline, redaction, the Compose viewer, and all three
+first-party extensions (`curl-export`, `replay`, `preset-playground`) are
+built and tested. Not yet published to JitPack/Maven Central.
 
 ## License
 
