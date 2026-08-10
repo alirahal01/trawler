@@ -17,7 +17,7 @@ class PresetPlaygroundExtensionTest {
     fun firingWithAPresetSendsItsHeadersAndBody() = runTest {
         var captured: HttpRequestData? = null
         val client = HttpClient(MockEngine { request -> captured = request; respond("ok", HttpStatusCode.OK) })
-        val extension = PresetPlaygroundExtension(client, endpoints = emptyList())
+        val extension = PresetPlaygroundExtension(client = { client }, endpoints = emptyList())
         val endpoint = Endpoint(label = "Login", method = "POST", url = "https://example.com/login")
         val preset = EndpointPreset(label = "Valid", headers = listOf("X-Custom" to "value"), body = "hello")
 
@@ -34,7 +34,7 @@ class PresetPlaygroundExtensionTest {
     fun firingWithNoPresetSendsAPlainRequest() = runTest {
         var captured: HttpRequestData? = null
         val client = HttpClient(MockEngine { request -> captured = request; respond("ok", HttpStatusCode.OK) })
-        val extension = PresetPlaygroundExtension(client, endpoints = emptyList())
+        val extension = PresetPlaygroundExtension(client = { client }, endpoints = emptyList())
         val endpoint = Endpoint(label = "Ping", method = "GET", url = "https://example.com/ping")
 
         extension.fire(endpoint, null)
@@ -45,7 +45,10 @@ class PresetPlaygroundExtensionTest {
 
     @Test
     fun hasNoPerCallActions() {
-        val extension = PresetPlaygroundExtension(HttpClient(MockEngine { respond("ok", HttpStatusCode.OK) }), emptyList())
+        val extension = PresetPlaygroundExtension(
+            client = { HttpClient(MockEngine { respond("ok", HttpStatusCode.OK) }) },
+            endpoints = emptyList(),
+        )
 
         assertEquals(0, extension.actions(io.github.alirahal01.trawler.core.CapturedCall(
             id = "1", url = "https://example.com", method = "GET", startedAtEpochMillis = 0L,

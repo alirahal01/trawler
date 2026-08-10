@@ -17,8 +17,15 @@ import kotlinx.coroutines.flow.asStateFlow
  * client. The "Replay" action only stages a [ReplayDraft]; the actual edit
  * UI is [standalonePanel] (Compose), and firing the request is [send] —
  * split out so both can be exercised without a Composable test harness.
+ *
+ * [client] is a provider, not a constructed [HttpClient], since the client
+ * this extension fires through is usually the very client that installs
+ * TrawlerMonitor — and TrawlerMonitor's config needs this extension's owning
+ * NetworkMonitor to exist first. A provider breaks that construction-order
+ * cycle: nothing here needs a real client until [send] actually runs, well
+ * after everything is wired up.
  */
-class ReplayExtension(private val client: HttpClient) : MonitorExtension {
+class ReplayExtension(private val client: () -> HttpClient) : MonitorExtension {
     override val id = "replay"
     override val label = "Replay"
 
@@ -38,7 +45,7 @@ class ReplayExtension(private val client: HttpClient) : MonitorExtension {
     }
 
     suspend fun send(draft: ReplayDraft) {
-        client.request(draft.url) {
+        client().request(draft.url) {
             method = HttpMethod.parse(draft.method)
             draft.headers.forEach { (key, value) -> headers.append(key, value) }
             draft.body?.let { setBody(it) }

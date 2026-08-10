@@ -16,7 +16,8 @@ class ReplayExtensionTest {
 
     @Test
     fun replayActionStagesADraftFromTheCall() = runTest {
-        val extension = ReplayExtension(HttpClient(MockEngine { respond("ok", HttpStatusCode.OK) }))
+        val client = HttpClient(MockEngine { respond("ok", HttpStatusCode.OK) })
+        val extension = ReplayExtension(client = { client })
         val call = CapturedCall(id = "1", url = "https://example.com", method = "GET", startedAtEpochMillis = 0L)
 
         extension.actions(call).single().invoke()
@@ -33,7 +34,7 @@ class ReplayExtensionTest {
                 respond("ok", HttpStatusCode.OK)
             },
         )
-        val extension = ReplayExtension(client)
+        val extension = ReplayExtension(client = { client })
         val call = CapturedCall(id = "1", url = "https://example.com", method = "GET", startedAtEpochMillis = 0L)
         extension.actions(call).single().invoke()
 
