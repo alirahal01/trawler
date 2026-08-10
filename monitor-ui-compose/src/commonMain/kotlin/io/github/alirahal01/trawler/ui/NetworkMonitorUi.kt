@@ -39,4 +39,11 @@ fun NetworkMonitorUi(monitor: NetworkMonitor, modifier: Modifier = Modifier) {
             modifier = modifier,
         )
     }
+
+    // Each panel decides for itself whether it has anything to show (e.g.
+    // ReplayExtension's returns early when its draft is null) — calling every
+    // registered extension's panel unconditionally, on top of whichever
+    // screen is showing, is what makes a CallAction like "Replay" or "Copy
+    // as cURL" actually pop up a dialog instead of silently doing nothing.
+    monitor.extensions.forEach { extension -> extension.standalonePanel?.invoke() }
 }
