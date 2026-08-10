@@ -16,6 +16,36 @@ container, no persistence layer in core — see
 See [CONTEXT.md](CONTEXT.md) for the project's glossary and
 [docs/adr/](docs/adr/) for the foundational architectural decisions.
 
+## Installation
+
+Available on JitPack (`v0.1.0`):
+
+```kotlin
+repositories {
+    maven { url = uri("https://jitpack.io") }
+}
+
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            implementation("com.github.alirahal01.trawler:monitor-core:v0.1.0")
+            implementation("com.github.alirahal01.trawler:monitor-ktor:v0.1.0")
+            implementation("com.github.alirahal01.trawler:monitor-extensions-api:v0.1.0")
+            implementation("com.github.alirahal01.trawler:monitor-ui-compose:v0.1.0")
+
+            // optional first-party extensions
+            implementation("com.github.alirahal01.trawler:curl-export:v0.1.0")
+            implementation("com.github.alirahal01.trawler:replay:v0.1.0")
+            implementation("com.github.alirahal01.trawler:preset-playground:v0.1.0")
+        }
+    }
+}
+```
+
+Each module resolves to the right Android/iOS/Desktop variant automatically
+through Gradle's normal KMP dependency resolution — verified directly against
+the built JitPack artifacts, not just documented from assumption.
+
 ## Modules
 
 - `monitor-core` — `CapturedCall` model and the `CallStore` ring buffer. No
@@ -31,7 +61,7 @@ See [CONTEXT.md](CONTEXT.md) for the project's glossary and
 
 Core capture pipeline, redaction, the Compose viewer, and all three
 first-party extensions (`curl-export`, `replay`, `preset-playground`) are
-built and tested. Not yet published to JitPack/Maven Central.
+built and tested. Published to JitPack as `v0.1.0`; not yet on Maven Central.
 
 ## License
 
