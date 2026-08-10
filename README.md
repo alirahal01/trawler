@@ -57,6 +57,22 @@ the built JitPack artifacts, not just documented from assumption.
   — first-party extensions built against that contract.
 - `sample-app` — Android + iOS + Desktop sample app exercising the library.
 
+## Running the sample app
+
+- **Desktop**: `./gradlew :sample-app:desktopApp:run`
+- **Android**: `./gradlew :sample-app:androidApp:installDebug`, or open the repo
+  root in Android Studio and run the `androidApp` configuration.
+- **iOS**: `sample-app/iosApp/` is an [XcodeGen](https://github.com/yonaskolb/XcodeGen)
+  project — `project.yml` is the source of truth, not the generated
+  `.xcodeproj`. First time, or after editing `project.yml`:
+  ```
+  brew install xcodegen
+  cd sample-app/iosApp && xcodegen generate
+  ```
+  Then open `TrawlerSample.xcodeproj` in Xcode and run. The Kotlin framework
+  builds automatically via a Run Script build phase
+  (`embedAndSignAppleFrameworkForXcode`) — no separate Gradle step needed.
+
 ## Status
 
 Core capture pipeline, redaction, the Compose viewer, and all three

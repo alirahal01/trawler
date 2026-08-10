@@ -1,0 +1,31 @@
+name: TrawlerSample
+options:
+  bundleIdPrefix: io.github.alirahal01.trawler
+  deploymentTarget:
+    iOS: "15.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    FRAMEWORK_SEARCH_PATHS: "$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)"
+targets:
+  TrawlerSample:
+    type: application
+    platform: iOS
+    sources:
+      - path: TrawlerSample
+    info:
+      path: TrawlerSample/Info.plist
+      properties:
+        UILaunchScreen: {}
+        CFBundleDisplayName: Trawler Sample
+        CADisableMinimumFrameDurationOnPhone: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.alirahal01.trawler.sample.ios
+        ENABLE_PREVIEWS: YES
+    preBuildScripts:
+      - name: Build Kotlin Framework
+        script: |
+          cd "$SRCROOT/../.."
+          ./gradlew :sample-app:shared:embedAndSignAppleFrameworkForXcode
+        basedOnDependencyAnalysis: false
