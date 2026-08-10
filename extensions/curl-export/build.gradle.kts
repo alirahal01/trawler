@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidKmpLibrary)
+    id("maven-publish")
 }
 
 extensions.configure<KotlinMultiplatformExtension> {

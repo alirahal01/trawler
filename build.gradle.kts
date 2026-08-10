@@ -12,6 +12,14 @@ plugins {
 // left to code review, since a transitive pull-in would be easy to miss.
 val bannedGroups = listOf("ro.cosminmihu.ktor")
 
+// gradle.properties uses GROUP/VERSION_NAME (not the Gradle-recognized lowercase
+// group/version keys) so it reads clearly as project metadata rather than magic
+// Gradle wiring; map them explicitly here instead of renaming the properties.
+allprojects {
+    group = providers.gradleProperty("GROUP").get()
+    version = providers.gradleProperty("VERSION_NAME").get()
+}
+
 subprojects {
     configurations.configureEach {
         bannedGroups.forEach { exclude(group = it) }

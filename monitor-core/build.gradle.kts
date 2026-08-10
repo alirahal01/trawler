@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.androidKmpLibrary)
+    id("maven-publish")
 }
 
 extensions.configure<KotlinMultiplatformExtension> {
