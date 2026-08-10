@@ -18,7 +18,7 @@ See [CONTEXT.md](CONTEXT.md) for the project's glossary and
 
 ## Installation
 
-Available on JitPack (`v0.1.1`):
+Available on JitPack (`v0.1.2`):
 
 ```kotlin
 repositories {
@@ -28,15 +28,15 @@ repositories {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation("com.github.alirahal01.trawler:monitor-core:v0.1.1")
-            implementation("com.github.alirahal01.trawler:monitor-ktor:v0.1.1")
-            implementation("com.github.alirahal01.trawler:monitor-extensions-api:v0.1.1")
-            implementation("com.github.alirahal01.trawler:monitor-ui-compose:v0.1.1")
+            implementation("com.github.alirahal01.trawler:monitor-core:v0.1.2")
+            implementation("com.github.alirahal01.trawler:monitor-ktor:v0.1.2")
+            implementation("com.github.alirahal01.trawler:monitor-extensions-api:v0.1.2")
+            implementation("com.github.alirahal01.trawler:monitor-ui-compose:v0.1.2")
 
             // optional first-party extensions
-            implementation("com.github.alirahal01.trawler:curl-export:v0.1.1")
-            implementation("com.github.alirahal01.trawler:replay:v0.1.1")
-            implementation("com.github.alirahal01.trawler:preset-playground:v0.1.1")
+            implementation("com.github.alirahal01.trawler:curl-export:v0.1.2")
+            implementation("com.github.alirahal01.trawler:replay:v0.1.2")
+            implementation("com.github.alirahal01.trawler:preset-playground:v0.1.2")
         }
     }
 }
@@ -77,7 +77,7 @@ the built JitPack artifacts, not just documented from assumption.
 
 Core capture pipeline, redaction, the Compose viewer, and all three
 first-party extensions (`curl-export`, `replay`, `preset-playground`) are
-built and tested. Published to JitPack as `v0.1.1`; not yet on Maven Central.
+built and tested. Published to JitPack as `v0.1.2`; not yet on Maven Central.
 
 ## License
 
