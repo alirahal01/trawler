@@ -4,6 +4,8 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidKmpLibrary)
+    alias(libs.plugins.composeMultiplatform)
+    alias(libs.plugins.composeCompiler)
     id("maven-publish")
 }
 
@@ -26,6 +28,9 @@ extensions.configure<KotlinMultiplatformExtension> {
         commonMain.dependencies {
             implementation(project(":monitor-core"))
             implementation(project(":monitor-extensions-api"))
+            implementation(compose.runtime)
+            implementation(compose.foundation)
+            implementation(compose.material3)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
