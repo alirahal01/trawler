@@ -1,15 +1,12 @@
 package io.github.alirahal01.trawler.sample
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.lightColorScheme
@@ -21,7 +18,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.alirahal01.trawler.extensions.NetworkMonitor
 import io.github.alirahal01.trawler.extensions.curlexport.CurlExportExtension
@@ -32,12 +28,17 @@ import io.github.alirahal01.trawler.extensions.replay.ReplayExtension
 import io.github.alirahal01.trawler.ktor.TrawlerMonitor
 import io.github.alirahal01.trawler.ui.NetworkMonitorUi
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 
 private const val BASE_URL = "https://httpbin.org"
 
-private val TrawlerColorScheme = lightColorScheme(
+private enum class Screen { Wallet, Monitor, Tools }
+
+internal val TrawlerColorScheme = lightColorScheme(
     primary = Color(0xFF00695C),
     onPrimary = Color.White,
     secondary = Color(0xFF00897B),
@@ -75,46 +76,44 @@ fun SampleApp() {
     val presetPlayground = remember { PresetPlaygroundExtension(client = { clientHolder.client }, presetEndpoints) }
     val monitor = remember { NetworkMonitor(extensions = listOf(curlExport, replay, presetPlayground)) }
     val client = remember {
-        HttpClient { install(TrawlerMonitor) { this.monitor = monitor } }.also { clientHolder.client = it }
+        HttpClient {
+            install(TrawlerMonitor) { this.monitor = monitor }
+            install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
+        }.also { clientHolder.client = it }
     }
-    var showMonitor by remember { mutableStateOf(false) }
+    val repository = remember { WalletRepository(client) }
+    var screen by remember { mutableStateOf(Screen.Wallet) }
 
     MaterialTheme(colorScheme = TrawlerColorScheme) {
-        if (showMonitor) {
-            Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
-                TextButton(onClick = { showMonitor = false }) { Text("‹ Close monitor") }
+        when (screen) {
+            Screen.Wallet -> WalletScreen(
+                repository = repository,
+                onOpenMonitor = { screen = Screen.Monitor },
+                onOpenTools = { screen = Screen.Tools },
+                modifier = Modifier.fillMaxSize().safeDrawingPadding(),
+            )
+            Screen.Monitor -> Column(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
+                TextButton(onClick = { screen = Screen.Wallet }) { Text("‹ Close monitor") }
                 NetworkMonitorUi(monitor = monitor, modifier = Modifier.weight(1f))
             }
-        } else {
-            Column(modifier = Modifier.fillMaxSize().safeDrawingPadding().padding(16.dp)) {
-                Text("Trawler Sample", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                Text(
-                    "Fire a request, then open the monitor to inspect it.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                TestButton("Success (200)") { client.get("$BASE_URL/get") }
-                TestButton("Error (500)") { client.get("$BASE_URL/status/500") }
-                TestButton("Slow (3s delay)") { client.get("$BASE_URL/delay/3") }
-                TestButton("Large body (500KB)") { client.get("$BASE_URL/bytes/500000") }
-                TestButton("Non-JSON (HTML)") { client.get("$BASE_URL/html") }
-                TestButton("Binary (PNG)") { client.get("$BASE_URL/image/png") }
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = { showMonitor = true }, modifier = Modifier.fillMaxWidth()) {
-                    Text("Open Trawler Monitor")
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedButton(onClick = { presetPlayground.open() }, modifier = Modifier.fillMaxWidth()) {
-                    Text("Open Preset Playground")
-                }
-            }
-            // NetworkMonitorUi already renders every registered extension's
-            // standalonePanel (including this one) while it's mounted — only
-            // render it here too, since "Open Preset Playground" is reachable
-            // from this screen, not just from inside the monitor.
-            presetPlayground.standalonePanel.invoke()
+            Screen.Tools -> DeveloperToolsScreen(
+                onBack = { screen = Screen.Wallet },
+                onOpenPresetPlayground = { presetPlayground.open() },
+                testScenariosContent = {
+                    TestButton("Success (200)") { client.get("$BASE_URL/get") }
+                    TestButton("Error (500)") { client.get("$BASE_URL/status/500") }
+                    TestButton("Slow (3s delay)") { client.get("$BASE_URL/delay/3") }
+                    TestButton("Large body (500KB)") { client.get("$BASE_URL/bytes/500000") }
+                    TestButton("Non-JSON (HTML)") { client.get("$BASE_URL/html") }
+                    TestButton("Binary (PNG)") { client.get("$BASE_URL/image/png") }
+                },
+                modifier = Modifier.fillMaxSize().safeDrawingPadding(),
+            )
         }
+        // NetworkMonitorUi already renders every registered extension's standalonePanel
+        // (including this one) while it's mounted — render it unconditionally here too,
+        // since Preset Playground is reachable from the Tools screen as well.
+        presetPlayground.standalonePanel.invoke()
     }
 }
 

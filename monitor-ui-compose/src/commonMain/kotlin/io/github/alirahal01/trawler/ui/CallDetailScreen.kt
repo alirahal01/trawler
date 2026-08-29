@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.alirahal01.trawler.core.CapturedCall
 import io.github.alirahal01.trawler.extensions.CallAction
@@ -177,4 +178,24 @@ private fun ByteArray?.toDisplayText(): String = when {
     this == null -> "(no body)"
     isEmpty() -> "(empty)"
     else -> decodeToString()
+}
+
+private val previewDetailCall = CapturedCall(
+    id = "1",
+    url = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin",
+    method = "GET",
+    requestHeaders = mapOf("Accept" to listOf("application/json")),
+    responseHeaders = mapOf("Content-Type" to listOf("application/json; charset=utf-8")),
+    responseBody = """[{"id":"bitcoin","current_price":77195.0}]""".encodeToByteArray(),
+    status = 200,
+    startedAtEpochMillis = 0L,
+    durationMillis = 312,
+)
+
+@Preview
+@Composable
+private fun CallDetailScreenPreview() {
+    MaterialTheme {
+        CallDetailScreen(call = previewDetailCall, actions = emptyList(), onBack = {})
+    }
 }

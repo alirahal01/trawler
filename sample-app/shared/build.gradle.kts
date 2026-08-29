@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.androidKmpLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.kotlinSerialization)
 }
 
 extensions.configure<KotlinMultiplatformExtension> {
@@ -33,10 +34,14 @@ extensions.configure<KotlinMultiplatformExtension> {
             implementation(project(":extensions:replay"))
             implementation(project(":extensions:preset-playground"))
             implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.kotlinx.serialization.json)
             implementation(compose.runtime)
             implementation(compose.ui)
             implementation(compose.foundation)
             implementation(compose.material3)
+            implementation("org.jetbrains.compose.ui:ui-tooling-preview:${libs.versions.compose.multiplatform.get()}")
         }
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
