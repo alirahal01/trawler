@@ -35,6 +35,7 @@ extensions.configure<KotlinMultiplatformExtension> {
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.components.resources)
+            implementation("org.jetbrains.compose.ui:ui-tooling-preview:${libs.versions.compose.multiplatform.get()}")
             implementation(libs.kotlinx.coroutines.core)
         }
         commonTest.dependencies {

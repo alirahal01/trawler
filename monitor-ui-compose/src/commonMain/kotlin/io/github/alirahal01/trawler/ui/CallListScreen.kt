@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import io.github.alirahal01.trawler.core.CapturedCall
 
@@ -182,4 +183,56 @@ private fun methodColor(method: String): Color = when (method.uppercase()) {
     "PATCH" -> Color(0xFF6A1B9A)
     "DELETE" -> Color(0xFFC62828)
     else -> Color(0xFF546E7A)
+}
+
+internal val previewCalls = listOf(
+    CapturedCall(
+        id = "1",
+        url = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd",
+        method = "GET",
+        status = 200,
+        startedAtEpochMillis = 0L,
+        durationMillis = 312,
+    ),
+    CapturedCall(
+        id = "2",
+        url = "https://httpbin.org/post",
+        method = "POST",
+        status = 201,
+        startedAtEpochMillis = 0L,
+        durationMillis = 480,
+    ),
+    CapturedCall(
+        id = "3",
+        url = "https://httpbin.org/status/500",
+        method = "GET",
+        status = 500,
+        startedAtEpochMillis = 0L,
+        durationMillis = 96,
+    ),
+    CapturedCall(
+        id = "4",
+        url = "https://httpbin.org/delay/3",
+        method = "GET",
+        status = null,
+        error = "SocketTimeoutException",
+        startedAtEpochMillis = 0L,
+        durationMillis = null,
+    ),
+)
+
+@Preview
+@Composable
+private fun CallListScreenPreview() {
+    MaterialTheme {
+        CallListScreen(calls = previewCalls, onCallSelected = {}, onClear = {})
+    }
+}
+
+@Preview
+@Composable
+private fun CallListScreenEmptyPreview() {
+    MaterialTheme {
+        CallListScreen(calls = emptyList(), onCallSelected = {}, onClear = {})
+    }
 }
