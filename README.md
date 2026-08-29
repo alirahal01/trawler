@@ -38,6 +38,14 @@ kotlin {
             implementation("com.github.alirahal01.trawler:replay:v0.1.2")
             implementation("com.github.alirahal01.trawler:preset-playground:v0.1.2")
         }
+        // mcp-server is Android + Desktop only (see below) — add it to
+        // those source sets specifically, not commonMain.
+        androidMain.dependencies {
+            implementation("com.github.alirahal01.trawler:mcp-server:v0.1.2")
+        }
+        desktopMain.dependencies {
+            implementation("com.github.alirahal01.trawler:mcp-server:v0.1.2")
+        }
     }
 }
 ```
@@ -55,7 +63,41 @@ the built JitPack artifacts, not just documented from assumption.
 - `monitor-extensions-api` — the `MonitorExtension` contract.
 - `extensions/curl-export`, `extensions/replay`, `extensions/preset-playground`
   — first-party extensions built against that contract.
+- `extensions/mcp-server` — exposes captured calls to an AI coding agent over
+  MCP; see [AI agent integration](#ai-agent-integration) below. Android +
+  Desktop only (see [ADR-0004](docs/adr/0004-mcp-diagnostics-server-localhost-only-opt-in.md)).
 - `sample-app` — Android + iOS + Desktop sample app exercising the library.
+
+## AI agent integration
+
+`extensions/mcp-server` runs a localhost-only MCP (Model Context Protocol)
+server inside the host app, so an AI coding agent — Claude Code, Claude
+Desktop, or anything else that speaks MCP — can query a *live* session's
+captured traffic directly instead of a human relaying it by hand: recent
+calls, duplicate/retry-storm detection, overlapping-call (race condition)
+detection, slow calls, and aggregate stats.
+
+It never starts on its own. In the sample app, register it alongside your
+other extensions and start it explicitly:
+
+```kotlin
+val mcpServer = McpServerExtension(monitor = { monitor }, port = 4319)
+// ... later, e.g. from a debug-menu button:
+scope.launch { mcpServer.start() }
+```
+
+Then point an MCP client at it — for Claude Code:
+
+```bash
+claude mcp add --transport http trawler http://127.0.0.1:4319/mcp
+```
+
+The server only ever binds to `127.0.0.1` and only exposes what's already
+in the (redacted) `CallStore` — see the ADR linked above for why, and
+`extensions/mcp-server`'s source for the exact tool list (`list_calls`,
+`get_call`, `find_duplicate_calls`, `find_concurrent_calls`,
+`find_slow_calls`, `get_call_stats`, `clear_calls`, and an optional
+`replay_call`).
 
 ## Running the sample app
 
@@ -75,9 +117,10 @@ the built JitPack artifacts, not just documented from assumption.
 
 ## Status
 
-Core capture pipeline, redaction, the Compose viewer, and all three
-first-party extensions (`curl-export`, `replay`, `preset-playground`) are
-built and tested. Published to JitPack as `v0.1.2`; not yet on Maven Central.
+Core capture pipeline, redaction, the Compose viewer, and all four
+first-party extensions (`curl-export`, `replay`, `preset-playground`,
+`mcp-server`) are built and tested. Published to JitPack as `v0.1.2`; not
+yet on Maven Central.
 
 ## License
 
