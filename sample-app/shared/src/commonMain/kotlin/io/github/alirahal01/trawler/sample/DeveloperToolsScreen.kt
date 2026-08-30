@@ -31,6 +31,7 @@ fun DeveloperToolsScreen(
     onOpenPresetPlayground: () -> Unit,
     testScenariosContent: @Composable ColumnScope.() -> Unit,
     modifier: Modifier = Modifier,
+    mcpServerContent: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         TextButton(onClick = onBack, modifier = Modifier.padding(start = 8.dp, top = 8.dp)) { Text("‹ Close tools") }
@@ -59,6 +60,15 @@ fun DeveloperToolsScreen(
                 description = "Trigger specific status codes, delays, and payload shapes.",
                 content = testScenariosContent,
             )
+            // Android/Desktop only — null on iOS, where extensions/mcp-server
+            // has no target (ADR-0004).
+            if (mcpServerContent != null) {
+                ToolsSection(
+                    title = "MCP Server",
+                    description = "Let an AI coding agent query recent calls, duplicates, and race conditions.",
+                    content = mcpServerContent,
+                )
+            }
         }
     }
 }

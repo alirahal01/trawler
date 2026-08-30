@@ -108,6 +108,18 @@ fun SampleApp() {
                     TestButton("Binary (PNG)") { client.get("$BASE_URL/image/png") }
                 },
                 modifier = Modifier.fillMaxSize().safeDrawingPadding(),
+                // Desktop/Android only — extensions/mcp-server has no iOS
+                // target (ADR-0004). Not one of NetworkMonitor's extensions:
+                // it only ever reads calls (observeCalls/clear), so it
+                // doesn't need onCapture/actions and can be wired straight
+                // to the built `monitor` instead of fighting the same
+                // construction-order problem replay/preset-playground solve
+                // with a deferred provider.
+                mcpServerContent = if (isMcpServerSupported) {
+                    { McpServerSection(monitor = monitor, modifier = Modifier.fillMaxWidth()) }
+                } else {
+                    null
+                },
             )
         }
         // NetworkMonitorUi already renders every registered extension's standalonePanel

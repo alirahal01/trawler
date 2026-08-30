@@ -24,6 +24,7 @@ include(
     ":extensions:curl-export",
     ":extensions:replay",
     ":extensions:preset-playground",
+    ":extensions:mcp-server",
     ":sample-app:shared",
     ":sample-app:androidApp",
     ":sample-app:desktopApp",

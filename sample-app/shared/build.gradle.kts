@@ -45,10 +45,14 @@ extensions.configure<KotlinMultiplatformExtension> {
         }
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
+            // Not in commonMain: extensions/mcp-server has no iOS target
+            // (ADR-0004), and commonMain is shared with iosMain.
+            implementation(project(":extensions:mcp-server"))
         }
         val desktopMain by getting {
             dependencies {
                 implementation(libs.ktor.client.cio)
+                implementation(project(":extensions:mcp-server"))
             }
         }
         iosMain.dependencies {
