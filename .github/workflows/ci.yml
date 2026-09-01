@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    # macOS: the only host that can compile the iOS (Kotlin/Native) targets
+    # every KMP module here ships, alongside the JVM/Android ones.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # `check` compiles everything a test depends on (every target's main
+      # + test source sets, transitively) and runs the tests — without
+      # `build`'s `assemble`, which also links *Release* iOS frameworks.
+      # That's an expensive LTO/devirtualization pass CI has no need for
+      # (it's for producing a distributable framework, not verification),
+      # and it OOMs the default runner's JVM heap even at -Xmx4g.
+      - name: Compile and test all targets
+        run: ./gradlew check --stacktrace

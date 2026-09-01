@@ -1,5 +1,7 @@
 # Trawler
 
+[![CI](https://github.com/alirahal01/trawler/actions/workflows/ci.yml/badge.svg)](https://github.com/alirahal01/trawler/actions/workflows/ci.yml)
+
 A lean, extensible network request monitor for Ktor clients on Kotlin
 Multiplatform (Android, iOS, Desktop/JVM). Capture HTTP traffic in-app,
 inspect it in a Compose Multiplatform viewer, and extend it — replay/edit-
