@@ -27,5 +27,11 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Build and test all targets
-        run: ./gradlew build --stacktrace
+      # `check` compiles everything a test depends on (every target's main
+      # + test source sets, transitively) and runs the tests — without
+      # `build`'s `assemble`, which also links *Release* iOS frameworks.
+      # That's an expensive LTO/devirtualization pass CI has no need for
+      # (it's for producing a distributable framework, not verification),
+      # and it OOMs the default runner's JVM heap even at -Xmx4g.
+      - name: Compile and test all targets
+        run: ./gradlew check --stacktrace
