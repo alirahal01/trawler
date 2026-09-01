@@ -116,7 +116,7 @@ fun SampleApp() {
                 // construction-order problem replay/preset-playground solve
                 // with a deferred provider.
                 mcpServerContent = if (isMcpServerSupported) {
-                    { McpServerSection(monitor = monitor, modifier = Modifier.fillMaxWidth()) }
+                    { McpServerSection(monitor = monitor, replay = replay, modifier = Modifier.fillMaxWidth()) }
                 } else {
                     null
                 },

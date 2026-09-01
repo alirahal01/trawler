@@ -4,9 +4,11 @@
 
 A lean, extensible network request monitor for Ktor clients on Kotlin
 Multiplatform (Android, iOS, Desktop/JVM). Capture HTTP traffic in-app,
-inspect it in a Compose Multiplatform viewer, and extend it — replay/edit-
-resend, preset-driven API firing, custom tagging, custom body renderers, or
-let an AI coding agent query it live over MCP — without forking the library.
+inspect it in a Compose Multiplatform viewer, and extend it through a small
+`MonitorExtension` API — replay/edit-resend, preset-driven API firing, and
+letting an AI coding agent query it live over MCP all ship as first-party
+extensions built against that same contract, so you can add your own without
+forking the library.
 
 Trawler is a clean-room alternative to
 [KtorMonitor](https://github.com/CosminMihuMDC/KtorMonitor) and

@@ -7,10 +7,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import io.github.alirahal01.trawler.extensions.NetworkMonitor
 import io.github.alirahal01.trawler.extensions.mcpserver.McpServerExtension
+import io.github.alirahal01.trawler.extensions.replay.ReplayDraft
+import io.github.alirahal01.trawler.extensions.replay.ReplayExtension
 
 @Composable
-actual fun McpServerSection(monitor: NetworkMonitor, modifier: Modifier) {
-    val mcpServer = remember { McpServerExtension(monitor = { monitor }) }
+actual fun McpServerSection(monitor: NetworkMonitor, replay: ReplayExtension, modifier: Modifier) {
+    val mcpServer = remember {
+        McpServerExtension(
+            monitor = { monitor },
+            replay = { call ->
+                replay.send(ReplayDraft.from(call))
+                monitor.observeCalls().value.last()
+            },
+        )
+    }
     OutlinedButton(onClick = { mcpServer.open() }, modifier = modifier) { Text("Open MCP Server") }
     mcpServer.standalonePanel.invoke()
 }
